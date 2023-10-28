@@ -3,34 +3,38 @@ package ru.mpei;
 import jade.core.AID;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Random;
 
 @Slf4j
+@AllArgsConstructor
 public class QueueChangeBehaviour extends OneShotBehaviour {
+
+    String oldInit;
+
     double newValueX;
+
     double newDeltaX;
-    public QueueChangeBehaviour(double newValueX, double newDeltaX) {
-        this.newValueX = newValueX;
-        this.newDeltaX = newDeltaX;
-    }
 
     @Override
     public void action() {
-        ACLMessage sendMessage = new ACLMessage(ACLMessage.REQUEST);
-
+        ACLMessage cancelMessage = new ACLMessage(ACLMessage.CANCEL);
         List<AID> agents = AgentService.findAgent(myAgent, "Agents");
-        agents.stream()
-                .filter(agent -> agents.indexOf(agent) != AgentService.indexAgent)
-                .forEach(aid -> sendMessage.addReceiver(aid));
-        int newIndexInit = AgentService.indexAgent;
-        while (agents.indexOf(myAgent.getAID()) == newIndexInit){
-            newIndexInit = (int) (Math.random() * 3);
+        agents.forEach(aid -> cancelMessage.addReceiver(aid));
+        Random randomizer = new Random();
+        String newNameInit = oldInit;
+        String localName = "";
+        while (oldInit.equals(newNameInit)){
+            AID aid = agents.get(randomizer.nextInt(agents.size()));
+            newNameInit = aid.getName();
+            localName = aid.getLocalName();
         }
-        AgentService.indexAgent = newIndexInit;
-        log.info("Система: Cмена инициатора, новый инициатор: "+agents.get(newIndexInit).getLocalName());
-        sendMessage.setContent(newValueX+" "+newDeltaX);
-        myAgent.send(sendMessage);
+        oldInit = newNameInit;
+        log.info("System: смена инициатора на: "+localName);
+        cancelMessage.setContent(newValueX+" "+newDeltaX+" "+oldInit);
+        myAgent.send(cancelMessage);
     }
 }

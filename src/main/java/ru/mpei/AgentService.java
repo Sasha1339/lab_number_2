@@ -11,9 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class AgentService {
-
-    public static int indexAgent;
-
     public static void registerAgent(Agent agent, String serviceType){
         DFAgentDescription dfAgentDescription = new DFAgentDescription();
         dfAgentDescription.setName(agent.getAID());
